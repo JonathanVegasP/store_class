@@ -1,4 +1,4 @@
-package com.jonathanvegasp.flutter_store
+package com.vollup.store
 
 import android.os.Bundle
 
