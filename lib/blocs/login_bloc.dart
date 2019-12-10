@@ -1,7 +1,7 @@
-import 'dart:convert';
+import 'dart:convert' show json;
 
-import 'package:flutter/material.dart';
-import 'package:rxdart/rxdart.dart';
+import 'package:flutter/material.dart' show FocusNode;
+import 'package:rxdart/rxdart.dart' show BehaviorSubject, Observable;
 import 'package:store/blocs/user_bloc.dart';
 import 'package:store/data/user_data.dart';
 import 'package:store/database/database.dart';
@@ -39,16 +39,16 @@ class LoginBloc with LoginValidators {
     _error.add("");
     _state.add(LoginState.LOADING);
     final map = await Database()
-        .getDataByColumn("users", "email", _email.value.trim().toLowerCase());
+        .getDataByJson("users", {"email": _email.value.trim().toLowerCase()});
     if (map["users"] == null) {
       _error.add("Usuário não foi encontrado");
-    } else if (map["users"]["email"] == null) {
+    } else if (map["users"][0]["email"] == null) {
       _error.add("Usuário não foi encontrado");
-    } else if (map["users"]["password"] != _password.value) {
+    } else if (map["users"][0]["password"] != _password.value) {
       _error.add("Senha incorreta");
     } else {
-      FileManager(UserFile).saveData(json.encode(map["users"]));
-      bloc.inUser(UserData.fromJson(map["users"]));
+      FileManager(UserFile).saveData(json.encode(map["users"][0]));
+      bloc.inUser(UserData.fromJson(map["users"][0]));
       _state.add(LoginState.IDLE);
       return true;
     }

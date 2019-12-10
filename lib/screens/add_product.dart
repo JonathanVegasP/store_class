@@ -184,16 +184,13 @@ class _AddProductScreenState extends State<AddProductScreen> {
                             ),
                           ],
                         ),
-                        StreamBuilder<bool>(
-                          builder: (context, snapshot) {
-                            return Button(
-                              onPressed: () {
-                                if (snapshot.hasData) {}
-                              },
-                              child: Text("Adicionar"),
-                            );
+                        Button<bool>(
+                          stream: _bloc.outValidator,
+                          onPressed: (snapshot) {
+                            if (snapshot.hasData) {}
                           },
-                        )
+                          child: Text("Adicionar"),
+                        ),
                       ],
                     ),
                   ),

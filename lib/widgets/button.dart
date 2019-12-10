@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 
-class Button extends StatelessWidget {
-  final VoidCallback onPressed;
+typedef _onPressed<T> = void Function(AsyncSnapshot<T>);
+
+class Button<T> extends StatelessWidget {
+  final _onPressed<T> onPressed;
   final Color color;
   final double borderRadius;
   final double padding;
   final Widget child;
   final Color textColor;
+  final Stream<T> stream;
 
   const Button({
     Key key,
@@ -16,19 +19,25 @@ class Button extends StatelessWidget {
     this.padding = 12.0,
     this.textColor = Colors.black,
     this.child,
+    this.stream,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return RaisedButton(
-      onPressed: onPressed,
-      color: color,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(borderRadius),
-      ),
-      padding: EdgeInsets.all(padding),
-      child: child,
-      textColor: textColor,
+    return StreamBuilder<T>(
+      builder: (context, snapshot) {
+        return RaisedButton(
+          onPressed: () => onPressed(snapshot),
+          color: color,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(borderRadius),
+          ),
+          padding: EdgeInsets.all(padding),
+          child: child,
+          textColor: textColor,
+        );
+      },
+      stream: stream,
     );
   }
 }

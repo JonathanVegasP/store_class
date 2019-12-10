@@ -1,9 +1,11 @@
-import 'dart:io';
+import 'dart:convert' show base64;
+import 'dart:io' show File;
 
-import 'package:flutter/material.dart';
-import 'package:image_cropper/image_cropper.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:rxdart/rxdart.dart';
+import 'package:flutter/material.dart' show FocusNode, Colors;
+import 'package:image_cropper/image_cropper.dart'
+    show ImageCropper, ImageCompressFormat, AndroidUiSettings;
+import 'package:image_picker/image_picker.dart' show ImagePicker, ImageSource;
+import 'package:rxdart/rxdart.dart' show Observable, BehaviorSubject;
 import 'package:store/data/product_data.dart';
 import 'package:store/database/database.dart';
 
@@ -46,8 +48,8 @@ class AddProductBloc {
     final cropped = await ImageCropper.cropImage(
         sourcePath: image.path,
         compressQuality: 100,
-        maxHeight: 720,
-        maxWidth: 1280,
+        maxHeight: 480,
+        maxWidth: (480 * 16 / 9).floor(),
         compressFormat: ImageCompressFormat.png,
         androidUiSettings: AndroidUiSettings(
           toolbarWidgetColor: Colors.white,
@@ -65,8 +67,8 @@ class AddProductBloc {
     final cropped = await ImageCropper.cropImage(
         sourcePath: image.path,
         compressQuality: 100,
-        maxHeight: 720,
-        maxWidth: 1280,
+        maxHeight: 480,
+        maxWidth: (480 * 16 / 9).floor(),
         compressFormat: ImageCompressFormat.png,
         androidUiSettings: AndroidUiSettings(
           toolbarWidgetColor: Colors.white,
@@ -79,10 +81,10 @@ class AddProductBloc {
   Future<bool> addProduct() async {
     final price =
         double.parse(_price.value.replaceAll(".", "").replaceAll(",", "."));
-    final product = ProductData(
+    final product = ProductData(base64.encode(await _image.value.readAsBytes()),
         _title.value, int.parse(_quantity.value), price, _barcode.value);
-    final map = await Database().createTable("users", product.toJson());
-    if (map["data"] == null)
+    final map = await Database().createTable("products", product.toJson());
+    if (map["products"] == null)
       return false;
     else
       return true;

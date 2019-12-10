@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:rxdart/rxdart.dart';
+import 'package:rxdart/rxdart.dart' show BehaviorSubject;
 import 'package:store/data/user_data.dart';
 import 'package:store/storage/file_manager.dart';
 import 'package:store/storage/files.dart';
@@ -10,10 +10,14 @@ class UserBloc {
 
   Future<bool> initialize() async {
     final user = await FileManager(UserFile).readData();
-    if (user.isNotEmpty) {
-      _user.add(UserData.fromJson(json.decode(user)));
-      return true;
-    } else {
+    try {
+      if (user.isNotEmpty) {
+        _user.add(UserData.fromJson(json.decode(user)));
+        return true;
+      } else {
+        return false;
+      }
+    } catch (e) {
       return false;
     }
   }
