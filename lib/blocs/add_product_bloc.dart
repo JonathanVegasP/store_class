@@ -8,28 +8,39 @@ import 'package:image_picker/image_picker.dart' show ImagePicker, ImageSource;
 import 'package:rxdart/rxdart.dart' show Observable, BehaviorSubject;
 import 'package:store/data/product_data.dart';
 import 'package:store/database/database.dart';
+import 'package:store/validators/add_product_validator.dart';
 
-class AddProductBloc {
+enum AddProductState { IDLE, LOADING }
+
+class AddProductBloc with AddProductValidator {
   final _image = BehaviorSubject<File>();
   final _title = BehaviorSubject<String>();
   final _quantity = BehaviorSubject<String>();
   final _price = BehaviorSubject<String>();
   final _barcode = BehaviorSubject<String>();
+  final _error = BehaviorSubject<String>();
+  final _state = BehaviorSubject<AddProductState>();
 
-  final descriptionFN = FocusNode();
+  final quantityFN = FocusNode();
+  final priceFN = FocusNode();
   final barcodeFN = FocusNode();
 
-  Stream<File> get outImage => _image.stream;
+  Stream<File> get outImage => _image.stream.transform(imageValidator);
 
-  Stream<String> get outTitle => _title.stream;
+  Stream<String> get outTitle => _title.stream.transform(titleValidator);
 
-  Stream<String> get outQuantity => _quantity.stream;
+  Stream<String> get outQuantity =>
+      _quantity.stream.transform(quantityValidator);
 
-  Stream<String> get outPrice => _price.stream;
+  Stream<String> get outPrice => _price.stream.transform(priceValidator);
 
-  Stream<String> get outBarcode => _barcode.stream;
+  Stream<String> get outBarcode => _barcode.stream.transform(barcodeValidator);
 
-  Stream<bool> get outValidator => Observable.combineLatest(
+  Stream<String> get outError => _error.stream;
+
+  Stream<AddProductState> get outState => _state.stream;
+
+  Stream<bool> get outValidate => Observable.combineLatest(
       [outTitle, outImage, outQuantity, outPrice, outBarcode], (_) => true);
 
   Function(String) get inTitle => _title.add;
@@ -41,52 +52,83 @@ class AddProductBloc {
   Function(String) get inBarcode => _barcode.add;
 
   Future<void> getImageFromGallery() async {
-    final image = await ImagePicker.pickImage(
-      source: ImageSource.gallery,
-      imageQuality: 80,
-    );
-    final cropped = await ImageCropper.cropImage(
+    try {
+      File image = await ImagePicker.pickImage(
+        source: ImageSource.gallery,
+        imageQuality: 80,
+      );
+      final response = await ImagePicker.retrieveLostData();
+      if (response != null && response.file != null) {
+        image = response.file;
+      }
+      final cropped = await ImageCropper.cropImage(
         sourcePath: image.path,
         compressQuality: 100,
-        maxHeight: 480,
-        maxWidth: (480 * 16 / 9).floor(),
+        maxHeight: 360,
+        maxWidth: 640,
         compressFormat: ImageCompressFormat.png,
         androidUiSettings: AndroidUiSettings(
           toolbarWidgetColor: Colors.white,
           toolbarColor: Colors.black,
           toolbarTitle: "Cortar Imagem",
-        ));
-    _image.add(cropped);
+        ),
+      );
+      _image.add(cropped);
+    } catch (e) {
+      print(e);
+    }
   }
 
   Future<void> getImageFromCamera() async {
-    final image = await ImagePicker.pickImage(
-      source: ImageSource.camera,
-      imageQuality: 80,
-    );
-    final cropped = await ImageCropper.cropImage(
+    try {
+      File image = await ImagePicker.pickImage(
+        source: ImageSource.camera,
+        imageQuality: 80,
+      );
+      final response = await ImagePicker.retrieveLostData();
+      if (response != null && response.file != null) {
+        image = response.file;
+      }
+      final cropped = await ImageCropper.cropImage(
         sourcePath: image.path,
         compressQuality: 100,
-        maxHeight: 480,
-        maxWidth: (480 * 16 / 9).floor(),
+        maxHeight: 360,
+        maxWidth: 640,
         compressFormat: ImageCompressFormat.png,
         androidUiSettings: AndroidUiSettings(
           toolbarWidgetColor: Colors.white,
           toolbarColor: Colors.black,
           toolbarTitle: "Cortar Imagem",
-        ));
-    _image.add(cropped);
+        ),
+      );
+      _image.add(cropped);
+    } catch (e) {
+      print(e);
+    }
+  }
+
+  void validateFields() {
+    if (_image.value == null) _image.add(null);
+    if (_title.value == null) _title.add("");
+    if (_quantity.value == null) _quantity.add("");
+    if (_price.value == null) _price.add("");
+    if (_barcode.value == null) _barcode.add("");
   }
 
   Future<bool> addProduct() async {
+    _error.add("");
+    _state.add(AddProductState.LOADING);
     final price =
         double.parse(_price.value.replaceAll(".", "").replaceAll(",", "."));
     final product = ProductData(base64.encode(await _image.value.readAsBytes()),
         _title.value, int.parse(_quantity.value), price, _barcode.value);
     final map = await Database().createTable("products", product.toJson());
-    if (map["products"] == null)
+    _state.add(AddProductState.IDLE);
+    if (map["products"] == null &&
+        map["message"] != "Bad state: Too many elements") {
+      _error.add("Erro, tente novamente mais tarde");
       return false;
-    else
+    } else
       return true;
   }
 
@@ -96,7 +138,10 @@ class AddProductBloc {
     _price.close();
     _barcode.close();
     _image.close();
-    descriptionFN.dispose();
+    _error.close();
+    _state.close();
+    quantityFN.dispose();
+    priceFN.dispose();
     barcodeFN.dispose();
   }
 }

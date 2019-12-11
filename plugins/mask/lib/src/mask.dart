@@ -43,6 +43,6 @@ class Mask {
     value = value.replaceAll(RegExp(r"\D"), "");
     value = value.replaceAllMapped(RegExp(r"(\d{1,2})$"), (m) => ",${m[1]}");
     return value.replaceAllMapped(
-        RegExp(r"(\d)(?=(\d{3})+,\d{2})$"), (m) => "${m[1]}.");
+        RegExp(r"(\d)(?=(\d{3})+,\d{2})"), (m) => "${m[1]}.");
   }
 }

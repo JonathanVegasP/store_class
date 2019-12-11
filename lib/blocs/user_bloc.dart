@@ -10,14 +10,10 @@ class UserBloc {
 
   Future<bool> initialize() async {
     final user = await FileManager(UserFile).readData();
-    try {
-      if (user.isNotEmpty) {
-        _user.add(UserData.fromJson(json.decode(user)));
-        return true;
-      } else {
-        return false;
-      }
-    } catch (e) {
+    if (user.isNotEmpty) {
+      _user.add(UserData.fromJson(json.decode(user)));
+      return true;
+    } else {
       return false;
     }
   }

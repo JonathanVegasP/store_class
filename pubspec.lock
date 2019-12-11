@@ -56,7 +56,7 @@ packages:
       name: crypto
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "2.1.3"
+    version: "2.1.4"
   cupertino_icons:
     dependency: "direct main"
     description:
@@ -106,7 +106,7 @@ packages:
       name: image_picker
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.6.2+1"
+    version: "0.6.2+2"
   intl:
     dependency: transitive
     description:
@@ -114,6 +114,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.15.8"
+  mask:
+    dependency: "direct main"
+    description:
+      path: "plugins\\mask"
+      relative: true
+    source: path
+    version: "0.0.1"
   matcher:
     dependency: transitive
     description:
@@ -183,7 +190,7 @@ packages:
       name: shared_preferences_platform_interface
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.0.0"
+    version: "1.0.1"
   sky_engine:
     dependency: transitive
     description: flutter

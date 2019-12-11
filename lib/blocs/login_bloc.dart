@@ -35,6 +35,11 @@ class LoginBloc with LoginValidators {
 
   Stream<String> get outError => _error.stream;
 
+  void validateFields() {
+    if (_email.value == null) _email.add("");
+    if (_password.value == null) _password.add("");
+  }
+
   Future<bool> signIn(UserBloc bloc) async {
     _error.add("");
     _state.add(LoginState.LOADING);

@@ -1,4 +1,4 @@
-import 'dart:io';
+import 'dart:io' show Platform;
 
 import 'package:flutter/cupertino.dart'
     show CupertinoDialogAction, CupertinoAlertDialog;
@@ -30,10 +30,12 @@ class CustomDialog extends StatelessWidget {
                 child: Text(positiveButton),
                 onPressed: positiveButtonOnPressed,
               ),
-              CupertinoDialogAction(
-                child: Text(negativeButton),
-                onPressed: negativeButtonOnPressed,
-              )
+              negativeButtonOnPressed != null
+                  ? CupertinoDialogAction(
+                      child: Text(negativeButton),
+                      onPressed: negativeButtonOnPressed,
+                    )
+                  : Container()
             ],
           )
         : AlertDialog(
@@ -46,10 +48,12 @@ class CustomDialog extends StatelessWidget {
                 onPressed: positiveButtonOnPressed,
                 child: Text(positiveButton),
               ),
-              FlatButton(
-                onPressed: negativeButtonOnPressed,
-                child: Text(negativeButton),
-              )
+              negativeButtonOnPressed != null
+                  ? FlatButton(
+                      onPressed: negativeButtonOnPressed,
+                      child: Text(negativeButton),
+                    )
+                  : Container()
             ],
           );
   }

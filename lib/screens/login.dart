@@ -94,6 +94,8 @@ class _LoginScreenState extends State<LoginScreen> {
                                   builder: (context) => HomeScreen(),
                                 ),
                               );
+                          } else {
+                            _bloc.validateFields();
                           }
                         },
                         child: Text(

@@ -1,3 +1,4 @@
+import 'package:flutter/services.dart' show TextInputFormatter;
 import 'package:flutter/material.dart';
 
 class InputField extends StatefulWidget {
@@ -13,6 +14,8 @@ class InputField extends StatefulWidget {
   final Color textColor;
   final String initialValue;
   final bool obscureText;
+  final List<TextInputFormatter> inputFormatters;
+  final String prefixText;
 
   const InputField({
     Key key,
@@ -28,6 +31,8 @@ class InputField extends StatefulWidget {
     this.textColor = Colors.white,
     this.initialValue = "",
     this.obscureText = false,
+    this.inputFormatters,
+    this.prefixText,
   }) : super(key: key);
 
   @override
@@ -59,10 +64,11 @@ class _InputFieldState extends State<InputField> {
           focusNode: widget.focusNode,
           decoration: InputDecoration(
             labelText: widget.labelText,
-            prefixIcon: Icon(
+            prefixText: widget.prefixText,
+            prefixIcon: widget.prefixText == null && widget.prefixIcon != null ? Icon(
               widget.prefixIcon,
               color: widget.prefixIconColor,
-            ),
+            ) : null,
             counterText: "",
             errorText: snapshot.error,
           ),
@@ -75,6 +81,7 @@ class _InputFieldState extends State<InputField> {
           ),
           textCapitalization: TextCapitalization.sentences,
           obscureText: widget.obscureText,
+          inputFormatters: widget.inputFormatters,
         );
       },
     );

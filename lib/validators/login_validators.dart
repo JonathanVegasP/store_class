@@ -1,4 +1,4 @@
-import 'dart:async';
+import 'dart:async' show StreamTransformer;
 
 class LoginValidators {
   final emailValidator =

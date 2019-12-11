@@ -1,5 +1,5 @@
 import 'package:flutter/services.dart'
-    show TextInputFormatter, TextEditingValue;
+    show TextEditingValue, TextInputFormatter, TextSelection;
 import 'package:mask/mask.dart';
 
 class MaskPattern extends TextInputFormatter {
@@ -10,10 +10,14 @@ class MaskPattern extends TextInputFormatter {
   @override
   TextEditingValue formatEditUpdate(
       TextEditingValue oldValue, TextEditingValue newValue) {
+    final text = Mask.applyMask(mask, newValue.text);
     return TextEditingValue(
+      text: text,
+      selection: TextSelection.collapsed(
+        offset: text.length,
+        affinity: newValue.selection.affinity,
+      ),
       composing: newValue.composing,
-      selection: newValue.selection,
-      text: Mask.applyMask(mask, newValue.text),
     );
   }
 }
