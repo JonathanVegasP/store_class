@@ -1,7 +1,7 @@
 import 'dart:convert' show json;
 
 import 'package:flutter/material.dart' show FocusNode;
-import 'package:rxdart/rxdart.dart' show BehaviorSubject, Observable;
+import 'package:rxdart/rxdart.dart';
 import 'package:store/blocs/user_bloc.dart';
 import 'package:store/data/user_data.dart';
 import 'package:store/database/database.dart';

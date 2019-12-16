@@ -24,6 +24,13 @@ class FlutterStore extends StatelessWidget {
                   ),
                 ),
               ),
+              pageTransitionsTheme: PageTransitionsTheme(
+                builders: {
+                  TargetPlatform.android: CupertinoPageTransitionsBuilder(),
+                  TargetPlatform.fuchsia: CupertinoPageTransitionsBuilder(),
+                  TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
+                },
+              ),
             ),
             home: IntroScreen(),
           );

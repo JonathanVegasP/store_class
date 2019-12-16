@@ -74,6 +74,7 @@ class Database {
       String table, Map<String, dynamic> data) async {
     try {
       final body = json.encode(data);
+      print('aqui');
       final request = await HttpClient().postUrl(Uri.parse("$_url/$table"));
       request.headers.contentType = ContentType.json;
       request.headers.contentLength = body.length;

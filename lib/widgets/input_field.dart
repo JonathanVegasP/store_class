@@ -65,10 +65,13 @@ class _InputFieldState extends State<InputField> {
           decoration: InputDecoration(
             labelText: widget.labelText,
             prefixText: widget.prefixText,
-            prefixIcon: widget.prefixText == null && widget.prefixIcon != null ? Icon(
-              widget.prefixIcon,
-              color: widget.prefixIconColor,
-            ) : null,
+            prefixIcon: widget.prefixText == null && widget.prefixIcon != null
+                ? Icon(
+                    widget.prefixIcon,
+                    color:
+                        snapshot.hasError ? Colors.red : widget.prefixIconColor,
+                  )
+                : null,
             counterText: "",
             errorText: snapshot.error,
           ),

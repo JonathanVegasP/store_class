@@ -116,20 +116,26 @@ class AddProductBloc with AddProductValidator {
   }
 
   Future<bool> addProduct() async {
-    _error.add("");
-    _state.add(AddProductState.LOADING);
-    final price =
-        double.parse(_price.value.replaceAll(".", "").replaceAll(",", "."));
-    final product = ProductData(base64.encode(await _image.value.readAsBytes()),
-        _title.value, int.parse(_quantity.value), price, _barcode.value);
-    final map = await Database().createTable("products", product.toJson());
-    _state.add(AddProductState.IDLE);
-    if (map["products"] == null &&
-        map["message"] != "Bad state: Too many elements") {
-      _error.add("Erro, tente novamente mais tarde");
+    try {
+      _error.add("");
+      _state.add(AddProductState.LOADING);
+      final price =
+      double.parse(_price.value.replaceAll(".", "").replaceAll(",", "."));
+      final product = ProductData(base64.encode(await _image.value.readAsBytes()),
+          _title.value, int.parse(_quantity.value), price, _barcode.value);
+      print("ate aqui ok");
+      final map = await Database().createTable("products", product.toJson());
+      _state.add(AddProductState.IDLE);
+      if (map["products"] == null &&
+          map["message"] != "Bad state: Too many elements") {
+        _error.add("Erro, tente novamente mais tarde");
+        return false;
+      } else
+        return true;
+    }catch(e) {
+      print(e);
       return false;
-    } else
-      return true;
+    }
   }
 
   void dispose() {

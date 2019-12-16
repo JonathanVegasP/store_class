@@ -4,6 +4,8 @@ import 'package:store/blocs/user_bloc.dart';
 import 'package:store/resources/images.dart';
 import 'package:store/screens/add_product.dart';
 import 'package:store/screens/login.dart';
+import 'package:store/storage/file_manager.dart';
+import 'package:store/storage/files.dart';
 import 'package:store/widgets/custom_dialog.dart';
 import 'package:store/widgets/fill_screen.dart';
 import 'package:store/widgets/home_card_button.dart';
@@ -63,13 +65,14 @@ class HomeScreen extends StatelessWidget {
                         negativeButton: "Não".toUpperCase(),
                         negativeButtonOnPressed: () => navigator.pop(),
                         positiveButton: "Sim".toUpperCase(),
-                        positiveButtonOnPressed: () {
+                        positiveButtonOnPressed: () async {
                           navigator.pop();
                           navigator.pushReplacement(
                             MaterialPageRoute(
                               builder: (context) => LoginScreen(),
                             ),
                           );
+                          await FileManager(UserFile).deleteAllFiles();
                         },
                       ),
                     );
