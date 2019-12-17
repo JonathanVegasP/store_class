@@ -8,6 +8,7 @@ import 'package:image_picker/image_picker.dart' show ImagePicker, ImageSource;
 import 'package:rxdart/rxdart.dart' show Observable, BehaviorSubject;
 import 'package:store/data/product_data.dart';
 import 'package:store/database/database.dart';
+import 'package:store/storage/firebase.dart';
 import 'package:store/validators/add_product_validator.dart';
 
 enum AddProductState { IDLE, LOADING }
@@ -119,10 +120,14 @@ class AddProductBloc with AddProductValidator {
     try {
       _error.add("");
       _state.add(AddProductState.LOADING);
+      final image =
+          await FBStorage.uploadPhoto(await _image.value.readAsBytes());
+      if (image.isEmpty)
+        throw new Exception("Não foi possível realizar o upload da imagem");
       final price =
-      double.parse(_price.value.replaceAll(".", "").replaceAll(",", "."));
-      final product = ProductData(base64.encode(await _image.value.readAsBytes()),
-          _title.value, int.parse(_quantity.value), price, _barcode.value);
+          double.parse(_price.value.replaceAll(".", "").replaceAll(",", "."));
+      final product = ProductData(
+          image, _title.value, int.parse(_quantity.value), price, _barcode.value);
       print("ate aqui ok");
       final map = await Database().createTable("products", product.toJson());
       _state.add(AddProductState.IDLE);
@@ -132,7 +137,7 @@ class AddProductBloc with AddProductValidator {
         return false;
       } else
         return true;
-    }catch(e) {
+    } catch (e) {
       print(e);
       return false;
     }

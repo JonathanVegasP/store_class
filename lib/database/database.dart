@@ -46,7 +46,6 @@ class Database {
         else
           queryUrl += "&${map.keys.elementAt(i)}=${map[map.keys.elementAt(i)]}";
         i++;
-        print(i);
       }
       final request =
           await HttpClient().getUrl(Uri.parse("$_url/$table?$queryUrl"));
@@ -74,10 +73,9 @@ class Database {
       String table, Map<String, dynamic> data) async {
     try {
       final body = json.encode(data);
-      print('aqui');
       final request = await HttpClient().postUrl(Uri.parse("$_url/$table"));
       request.headers.contentType = ContentType.json;
-      request.headers.contentLength = body.length;
+      request.headers.contentLength = -1;
       request.headers.add("key", _key);
       request.headers.add("id", _id);
       request.write(body);
@@ -108,7 +106,8 @@ class Database {
       request.headers.add("key", _key);
       request.headers.add("id", _id);
       request.headers.contentType = ContentType.json;
-      request.headers.contentLength = body.length;
+      request.headers.contentLength = -1;
+      request.encoding = AsciiCodec();
       request.write(body);
       final response = await request.close();
       if (response.statusCode == 403) {
