@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 import 'package:store/blocs/add_product_bloc.dart';
+import 'package:store/blocs/user_bloc.dart';
 import 'package:store/widgets/button.dart';
 import 'package:store/widgets/custom_app_bar.dart';
 import 'package:store/widgets/custom_dialog.dart';
@@ -142,7 +144,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
                         stream: _bloc.outValidate,
                         onPressed: (context,snapshot) async {
                           if (snapshot.hasData) {
-                            final result = await _bloc.addProduct();
+                            final result = await _bloc.addProduct(Provider.of<UserBloc>(context));
                             if (result)
                               showDialog(
                                 context: context,

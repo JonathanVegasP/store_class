@@ -9,7 +9,7 @@ class FlutterStore extends StatelessWidget {
     final bloc = UserBloc();
     return Provider<UserBloc>(
       create: (_) => bloc,
-      child: StreamBuilder(
+      child: StreamBuilder<bool>(
         stream: bloc.outUser,
         builder: (context, snapshot) {
           return MaterialApp(

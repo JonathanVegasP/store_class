@@ -7,6 +7,7 @@ import 'package:image_cropper/image_cropper.dart'
     show ImageCropper, ImageCompressFormat, AndroidUiSettings;
 import 'package:image_picker/image_picker.dart' show ImagePicker, ImageSource;
 import 'package:rxdart/rxdart.dart' show Observable, BehaviorSubject;
+import 'package:store/blocs/user_bloc.dart';
 import 'package:store/data/product_data.dart';
 import 'package:store/database/database.dart';
 import 'package:store/validators/add_product_validator.dart';
@@ -116,7 +117,7 @@ class AddProductBloc with AddProductValidator {
     if (_barcode.value == null) _barcode.add("");
   }
 
-  Future<bool> addProduct() async {
+  Future<bool> addProduct(UserBloc bloc) async {
     try {
       _error.add("");
       _state.add(AddProductState.LOADING);
@@ -130,13 +131,16 @@ class AddProductBloc with AddProductValidator {
         _barcode.value,
       );
       final map = await Database().createTable("products", product.toJson());
-      _state.add(AddProductState.IDLE);
       if (map["products"] == null &&
           map["error"] != "Bad state: Too many elements") {
         _error.add("Erro, tente novamente mais tarde");
-        return false;
-      } else
-        return true;
+        throw Exception(json.encode(map));
+      } else {
+        final products = await Database().getDataByTable("products");
+        bloc.inProducts(products["products"]);
+      }
+      _state.add(AddProductState.IDLE);
+      return true;
     } catch (e) {
       print(e);
       return false;

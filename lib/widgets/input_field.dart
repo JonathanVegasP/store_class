@@ -1,6 +1,9 @@
-import 'package:flutter/services.dart' show TextInputFormatter;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show TextInputFormatter;
 import 'package:rxdart/rxdart.dart';
+
+typedef _OnItemPressed = String Function(dynamic);
+typedef _OnSuggestionsChanged = Future<List> Function(String);
 
 class InputField extends StatefulWidget {
   final Stream<String> stream;
@@ -17,6 +20,8 @@ class InputField extends StatefulWidget {
   final bool obscureText;
   final List<TextInputFormatter> inputFormatters;
   final String prefixText;
+  final _OnItemPressed onItemPressed;
+  final _OnSuggestionsChanged items;
 
   const InputField({
     Key key,
@@ -34,17 +39,20 @@ class InputField extends StatefulWidget {
     this.obscureText = false,
     this.inputFormatters,
     this.prefixText,
+    this.onItemPressed,
+    this.items,
   }) : super(key: key);
 
   @override
   _InputFieldState createState() => _InputFieldState();
 }
 
-class _InputFieldState extends State<InputField> {
+class _InputFieldState extends State<InputField> with ChangeNotifier {
   final _controller = TextEditingController();
   final _layer = LayerLink();
-  final _suggestions = BehaviorSubject<List<String>>();
+  final _suggestions = BehaviorSubject<List>();
   final _focus = FocusNode();
+  OverlayEntry _entry;
 
   @override
   void initState() {
@@ -52,22 +60,44 @@ class _InputFieldState extends State<InputField> {
     _controller.text = widget.initialValue;
     _focus.addListener(() {
       if (_focus.hasFocus) {
-      } else {}
+        _entry = _overlayEntry();
+        Overlay.of(context).insert(_entry);
+      } else {
+        _entry.remove();
+      }
     });
     widget.focusNode?.addListener(() {
-      if (_focus.hasFocus) {
-      } else {}
+      if (widget.focusNode.hasFocus) {
+        _entry = _overlayEntry();
+        Overlay.of(context).insert(_entry);
+      } else {
+        _entry.remove();
+      }
+    });
+    _controller.addListener(() async {
+      final data = _controller.text;
+      if (data.isNotEmpty && widget.items != null) {
+        final list = await widget.items(_controller.text);
+        print(list);
+        _suggestions.add(list);
+      } else {
+        _suggestions.add([]);
+      }
     });
   }
 
   @override
   void didUpdateWidget(InputField oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget != this.widget) {
-      if (oldWidget.focusNode == null && this.widget.focusNode != null)
+    if (oldWidget != widget) {
+      if (widget.focusNode != null && !widget.focusNode.hasListeners)
         widget.focusNode?.addListener(() {
-          if (_focus.hasFocus) {
-          } else {}
+          if (widget.focusNode.hasFocus) {
+            _entry = _overlayEntry();
+            Overlay.of(context).insert(_entry);
+          } else {
+            _entry.remove();
+          }
         });
     }
   }
@@ -92,9 +122,38 @@ class _InputFieldState extends State<InputField> {
           offset: Offset(0.0, size.height),
           child: Material(
             elevation: 2.0,
-            child: StreamBuilder<List<String>>(
+            child: StreamBuilder<List>(
               stream: _suggestions.stream,
-              builder: (context, snapshot) {},
+              builder: (context, snapshot) {
+                return snapshot.hasData && _controller.text.isNotEmpty
+                    ? ConstrainedBox(
+                        constraints: BoxConstraints(
+                          maxHeight: 200,
+                        ),
+                        child: ListView.builder(
+                          shrinkWrap: true,
+                          padding: EdgeInsets.zero,
+                          itemCount: snapshot.data.length,
+                          itemBuilder: (context, index) {
+                            return ListTile(
+                              onTap: () {
+                                _controller.text =
+                                    widget.onItemPressed(snapshot.data[index]);
+                                _suggestions.add([]);
+                              },
+                              title: Text(
+                                snapshot.data[index] ?? "",
+                                style: TextStyle(
+                                  fontSize: 16.0,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      )
+                    : Container();
+              },
             ),
           ),
         ),
@@ -111,7 +170,7 @@ class _InputFieldState extends State<InputField> {
           link: _layer,
           child: TextField(
             controller: _controller,
-            focusNode: widget.focusNode,
+            focusNode:  widget.focusNode ?? _focus,
             decoration: InputDecoration(
               labelText: widget.labelText,
               prefixText: widget.prefixText,
