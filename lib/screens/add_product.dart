@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart' show WhitelistingTextInputFormatter;
+import 'package:flutter/services.dart';
 import 'package:store/blocs/add_product_bloc.dart';
 import 'package:store/widgets/button.dart';
+import 'package:store/widgets/custom_app_bar.dart';
 import 'package:store/widgets/custom_dialog.dart';
 import 'package:store/widgets/dismiss_keyboard.dart';
 import 'package:store/widgets/error_message.dart';
@@ -9,8 +10,7 @@ import 'package:store/widgets/fill_screen.dart';
 import 'package:store/widgets/image_editor.dart';
 import 'package:store/widgets/input_field.dart';
 import 'package:store/widgets/loading.dart';
-import 'package:store/widgets/logo_widget.dart';
-import 'package:mask/mask.dart' show MoneyMask;
+import 'package:mask/mask.dart';
 
 class AddProductScreen extends StatefulWidget {
   @override
@@ -37,21 +37,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
           FillScreen(
             child: Column(
               children: <Widget>[
-                SizedBox(
-                  height: 56.0,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: <Widget>[
-                      BackButton(
-                        color: Colors.white,
-                      ),
-                      LogoWidget(
-                        width: 150,
-                      ),
-                      Container(),
-                    ],
-                  ),
-                ),
+                CustomAppBar(),
                 Padding(
                   padding: EdgeInsets.all(32.0),
                   child: Column(
@@ -154,7 +140,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
                       ),
                       Button<bool>(
                         stream: _bloc.outValidate,
-                        onPressed: (snapshot) async {
+                        onPressed: (context,snapshot) async {
                           if (snapshot.hasData) {
                             final result = await _bloc.addProduct();
                             if (result)

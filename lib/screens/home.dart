@@ -4,12 +4,14 @@ import 'package:store/blocs/user_bloc.dart';
 import 'package:store/resources/images.dart';
 import 'package:store/screens/add_product.dart';
 import 'package:store/screens/login.dart';
+import 'package:store/screens/new_sale.dart';
 import 'package:store/storage/file_manager.dart';
 import 'package:store/storage/files.dart';
 import 'package:store/widgets/custom_dialog.dart';
 import 'package:store/widgets/fill_screen.dart';
 import 'package:store/widgets/home_card_button.dart';
 import 'package:store/widgets/logo_widget.dart';
+import 'package:store/widgets/title_style.dart';
 import 'package:store/widgets/vollup_logo.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -31,11 +33,7 @@ class HomeScreen extends StatelessWidget {
                 ),
                 Text(
                   "Olá, ${bloc.user?.name ?? ""}",
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 16.0,
-                    fontWeight: FontWeight.w500,
-                  ),
+                  style: TitleStyle(),
                 ),
               ],
             ),
@@ -52,7 +50,11 @@ class HomeScreen extends StatelessWidget {
                   icon: Icons.add_circle_outline,
                 ),
                 HomeCardButton(
-                  onPressed: () => false,
+                  onPressed: () => navigator.push(
+                    MaterialPageRoute(
+                      builder: (context) => NewSaleScreen(),
+                    ),
+                  ),
                   title: "Efetuar uma Venda",
                   image: BolsaImage,
                 ),

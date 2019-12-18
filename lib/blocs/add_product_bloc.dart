@@ -1,4 +1,5 @@
 import 'dart:convert' show base64;
+import 'dart:convert';
 import 'dart:io' show File;
 
 import 'package:flutter/material.dart' show FocusNode, Colors;
@@ -8,7 +9,6 @@ import 'package:image_picker/image_picker.dart' show ImagePicker, ImageSource;
 import 'package:rxdart/rxdart.dart' show Observable, BehaviorSubject;
 import 'package:store/data/product_data.dart';
 import 'package:store/database/database.dart';
-import 'package:store/storage/firebase.dart';
 import 'package:store/validators/add_product_validator.dart';
 
 enum AddProductState { IDLE, LOADING }
@@ -120,19 +120,19 @@ class AddProductBloc with AddProductValidator {
     try {
       _error.add("");
       _state.add(AddProductState.LOADING);
-      final image =
-          await FBStorage.uploadPhoto(await _image.value.readAsBytes());
-      if (image.isEmpty)
-        throw new Exception("Não foi possível realizar o upload da imagem");
       final price =
           double.parse(_price.value.replaceAll(".", "").replaceAll(",", "."));
       final product = ProductData(
-          image, _title.value, int.parse(_quantity.value), price, _barcode.value);
-      print("ate aqui ok");
+        base64.encode(await _image.value.readAsBytes()),
+        _title.value,
+        int.parse(_quantity.value),
+        price,
+        _barcode.value,
+      );
       final map = await Database().createTable("products", product.toJson());
       _state.add(AddProductState.IDLE);
       if (map["products"] == null &&
-          map["message"] != "Bad state: Too many elements") {
+          map["error"] != "Bad state: Too many elements") {
         _error.add("Erro, tente novamente mais tarde");
         return false;
       } else

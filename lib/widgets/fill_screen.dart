@@ -15,7 +15,10 @@ class FillScreen extends StatelessWidget {
           builder: (context, view) {
             return SingleChildScrollView(
               child: ConstrainedBox(
-                constraints: BoxConstraints(minHeight: view.maxHeight),
+                constraints: BoxConstraints(
+                  minHeight: view.maxHeight,
+                  minWidth: view.maxWidth,
+                ),
                 child: child,
               ),
             );

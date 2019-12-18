@@ -82,7 +82,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                       Button<bool>(
                         stream: _bloc.outValidate,
-                        onPressed: (snapshot) async {
+                        onPressed: (context, snapshot) async {
                           focus.unfocus();
                           if (snapshot.hasData) {
                             final result = await _bloc

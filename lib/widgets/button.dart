@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-typedef _onPressed<T> = void Function(AsyncSnapshot<T>);
+typedef _onPressed<T> = void Function(BuildContext,AsyncSnapshot<T>);
 
 class Button<T> extends StatelessWidget {
   final _onPressed<T> onPressed;
@@ -27,7 +27,7 @@ class Button<T> extends StatelessWidget {
     return StreamBuilder<T>(
       builder: (context, snapshot) {
         return RaisedButton(
-          onPressed: () => onPressed(snapshot),
+          onPressed: () => onPressed(context,snapshot),
           color: color,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(borderRadius),
