@@ -3,6 +3,7 @@ import 'dart:convert' show json;
 import 'package:flutter/material.dart' show FocusNode;
 import 'package:rxdart/rxdart.dart';
 import 'package:store/blocs/user_bloc.dart';
+import 'package:store/data/product_data.dart';
 import 'package:store/data/user_data.dart';
 import 'package:store/database/database.dart';
 import 'package:store/storage/file_manager.dart';
@@ -52,8 +53,13 @@ class LoginBloc with LoginValidators {
     } else if (map["users"][0]["password"] != _password.value) {
       _error.add("Senha incorreta");
     } else {
-      FileManager(UserFile).saveData(json.encode(map["users"][0]));
       bloc.inUser(UserData.fromJson(map["users"][0]));
+      final products = await Database().getDataByTable("products");
+      List list = products["products"] as List;
+      list = list.map((product) => ProductData.fromJson(product)).toList();
+      bloc.inProducts(list);
+      FileManager(ProductsFile).saveData(json.encode(products["products"]));
+      FileManager(UserFile).saveData(json.encode(map["users"][0]));
       _state.add(LoginState.IDLE);
       return true;
     }

@@ -16,6 +16,13 @@ class UserBloc {
     final user = await FileManager(UserFile).readData();
     if (user.isNotEmpty) {
       _user.add(UserData.fromJson(json.decode(user)));
+      final products = "";
+      if (products != null && products != "") {
+        List list = json.decode(products);
+        print(list);
+        list = list.map((product) => ProductData.fromJson(product)).toList();
+        _products.add(list);
+      }
       getLastData();
       return true;
     } else {
@@ -28,17 +35,18 @@ class UserBloc {
       final user = await Database().getDataByJson("users", {
         "id": _user.value.id,
       });
-      if(user["users"] != null) {
-        _user.add(user["users"][0]);
+      if (user["users"] != null) {
+        _user.add(UserData.fromJson(user["users"][0]));
       }
       final map = await Database().getDataByTable("products");
+      print(map);
       if (map["products"] != null) {
-        final list = map["products"] as List<Map<String, dynamic>>;
+        final list = map["products"] as List;
         _products.add(list.map((map) {
           return ProductData.fromJson(map);
         }).toList());
       }
-    }catch(e) {
+    } catch (e) {
       print(e);
     }
   }

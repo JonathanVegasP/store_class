@@ -10,6 +10,8 @@ import 'package:rxdart/rxdart.dart' show Observable, BehaviorSubject;
 import 'package:store/blocs/user_bloc.dart';
 import 'package:store/data/product_data.dart';
 import 'package:store/database/database.dart';
+import 'package:store/storage/file_manager.dart';
+import 'package:store/storage/files.dart';
 import 'package:store/validators/add_product_validator.dart';
 
 enum AddProductState { IDLE, LOADING }
@@ -137,7 +139,10 @@ class AddProductBloc with AddProductValidator {
         throw Exception(json.encode(map));
       } else {
         final products = await Database().getDataByTable("products");
-        bloc.inProducts(products["products"]);
+        List list = products["products"] as List;
+        list = list.map((product) => ProductData.fromJson(product)).toList();
+        bloc.inProducts(list);
+        FileManager(ProductsFile).saveData(json.encode(products["products"]));
       }
       _state.add(AddProductState.IDLE);
       return true;

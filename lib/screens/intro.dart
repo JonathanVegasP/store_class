@@ -2,9 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:store/blocs/user_bloc.dart';
 import 'package:store/screens/home.dart';
+import 'package:store/screens/login.dart';
 import 'package:store/widgets/logo_widget.dart';
-
-import 'login.dart';
 
 class IntroScreen extends StatefulWidget {
   @override

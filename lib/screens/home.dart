@@ -75,6 +75,8 @@ class HomeScreen extends StatelessWidget {
                             ),
                           );
                           await FileManager(UserFile).deleteAllFiles();
+                          bloc.inUser(null);
+                          bloc.inProducts(null);
                         },
                       ),
                     );

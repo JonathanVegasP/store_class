@@ -1,11 +1,13 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show TextInputFormatter;
 import 'package:rxdart/rxdart.dart';
 
-typedef _OnItemPressed = String Function(dynamic);
-typedef _OnSuggestionsChanged = Future<List> Function(String);
+typedef _OnItemPressed<T> = String Function(T);
+typedef _OnSuggestionsChanged<T> = Future<List<T>> Function(String);
+typedef _ItemBuilder<T> = Widget Function(BuildContext, T);
 
-class InputField extends StatefulWidget {
+class InputField<T> extends StatefulWidget {
   final Stream<String> stream;
   final FocusNode focusNode;
   final String labelText;
@@ -20,8 +22,9 @@ class InputField extends StatefulWidget {
   final bool obscureText;
   final List<TextInputFormatter> inputFormatters;
   final String prefixText;
-  final _OnItemPressed onItemPressed;
-  final _OnSuggestionsChanged items;
+  final _OnItemPressed<T> onItemPressed;
+  final _OnSuggestionsChanged<T> items;
+  final _ItemBuilder<T> itemBuilder;
 
   const InputField({
     Key key,
@@ -41,16 +44,17 @@ class InputField extends StatefulWidget {
     this.prefixText,
     this.onItemPressed,
     this.items,
+    this.itemBuilder,
   }) : super(key: key);
 
   @override
-  _InputFieldState createState() => _InputFieldState();
+  _InputFieldState<T> createState() => _InputFieldState<T>();
 }
 
-class _InputFieldState extends State<InputField> with ChangeNotifier {
+class _InputFieldState<T> extends State<InputField<T>> {
   final _controller = TextEditingController();
   final _layer = LayerLink();
-  final _suggestions = BehaviorSubject<List>();
+  final _suggestions = BehaviorSubject<List<T>>();
   final _focus = FocusNode();
   OverlayEntry _entry;
 
@@ -58,55 +62,55 @@ class _InputFieldState extends State<InputField> with ChangeNotifier {
   void initState() {
     super.initState();
     _controller.text = widget.initialValue;
-    _focus.addListener(() {
-      if (_focus.hasFocus) {
-        _entry = _overlayEntry();
-        Overlay.of(context).insert(_entry);
-      } else {
-        _entry.remove();
-      }
-    });
-    widget.focusNode?.addListener(() {
-      if (widget.focusNode.hasFocus) {
-        _entry = _overlayEntry();
-        Overlay.of(context).insert(_entry);
-      } else {
-        _entry.remove();
-      }
-    });
-    _controller.addListener(() async {
-      final data = _controller.text;
-      if (data.isNotEmpty && widget.items != null) {
-        final list = await widget.items(_controller.text);
-        print(list);
-        _suggestions.add(list);
-      } else {
-        _suggestions.add([]);
-      }
-    });
+    _focus.addListener(_focusListener);
+    widget.focusNode?.addListener(_fnListener);
+    _controller.addListener(_listener);
+  }
+
+  void _focusListener() {
+    if (_focus.hasFocus) {
+      _entry = _overlayEntry();
+      Overlay.of(context).insert(_entry);
+    } else {
+      _entry.remove();
+    }
+  }
+
+  _fnListener() {
+    if (widget.focusNode.hasFocus) {
+      _entry = _overlayEntry();
+      Overlay.of(context).insert(_entry);
+    } else {
+      _entry.remove();
+    }
+  }
+
+  void _listener() async {
+    final data = _controller.text;
+    if (data.isNotEmpty && widget.items != null) {
+      final list = await widget.items(_controller.text);
+      _suggestions.add(list);
+    } else {
+      _suggestions.add([]);
+    }
   }
 
   @override
   void didUpdateWidget(InputField oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget != widget) {
-      if (widget.focusNode != null && !widget.focusNode.hasListeners)
-        widget.focusNode?.addListener(() {
-          if (widget.focusNode.hasFocus) {
-            _entry = _overlayEntry();
-            Overlay.of(context).insert(_entry);
-          } else {
-            _entry.remove();
-          }
-        });
+      if (widget.focusNode != null) widget.focusNode?.addListener(_fnListener);
     }
   }
 
   @override
   void dispose() {
+    _controller.removeListener(_listener);
     _controller.dispose();
     _suggestions.close();
+    _focus.removeListener(_focusListener);
     _focus.dispose();
+    widget.focusNode?.removeListener(_fnListener);
     super.dispose();
   }
 
@@ -130,24 +134,27 @@ class _InputFieldState extends State<InputField> with ChangeNotifier {
                         constraints: BoxConstraints(
                           maxHeight: 200,
                         ),
-                        child: ListView.builder(
+                        child: ListView.separated(
+                          separatorBuilder: (context, index) {
+                            return Divider(
+                              color: Colors.black,
+                              height: 3,
+                            );
+                          },
                           shrinkWrap: true,
                           padding: EdgeInsets.zero,
                           itemCount: snapshot.data.length,
                           itemBuilder: (context, index) {
-                            return ListTile(
+                            return InkWell(
                               onTap: () {
                                 _controller.text =
                                     widget.onItemPressed(snapshot.data[index]);
                                 _suggestions.add([]);
+                                _focus.unfocus();
+                                widget.focusNode?.unfocus();
                               },
-                              title: Text(
-                                snapshot.data[index] ?? "",
-                                style: TextStyle(
-                                  fontSize: 16.0,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
+                              child: widget.itemBuilder(
+                                  context, snapshot.data[index]),
                             );
                           },
                         ),
@@ -170,7 +177,7 @@ class _InputFieldState extends State<InputField> with ChangeNotifier {
           link: _layer,
           child: TextField(
             controller: _controller,
-            focusNode:  widget.focusNode ?? _focus,
+            focusNode: widget.focusNode ?? _focus,
             decoration: InputDecoration(
               labelText: widget.labelText,
               prefixText: widget.prefixText,

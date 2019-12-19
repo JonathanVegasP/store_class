@@ -23,8 +23,7 @@ class Database {
       final response = await request.send();
       if (!request.finalized) request.finalize();
       if (response.statusCode >= 200 && response.statusCode < 300) {
-        return json
-            .decode(await response.stream.transform(utf8.decoder).single);
+        return json.decode(await utf8.decodeStream(response.stream));
       } else {
         return {
           "status": response.statusCode,
@@ -46,32 +45,19 @@ class Database {
   }
 
   Future<Map<String, dynamic>> getDataByTable(String table) async {
-    try {
-      final request = http.Request("GET", Uri.parse("$_url/$table"));
-      request.headers["Content-Type"] = "application/json";
-      request.headers["key"] = _key;
-      request.headers["id"] = _id;
-      final response = await request.send();
-      if (!request.finalized) request.finalize();
-      if (response.statusCode >= 200 && response.statusCode < 300) {
-        return json
-            .decode(await response.stream.transform(utf8.decoder).single);
-      } else {
-        return {
-          "status": response.statusCode,
-          "headers": response.headers,
-          "body": await response.stream.transform(utf8.decoder).single
-        };
-      }
-    } on SocketException {
+    final request = http.Request("GET", Uri.parse("$_url/$table"));
+    request.persistentConnection = true;
+    request.headers["Content-Type"] = "application/json";
+    request.headers["key"] = _key;
+    request.headers["id"] = _id;
+    final response = await request.send();
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      return json.decode(await utf8.decodeStream(response.stream));
+    } else {
       return {
-        "message":
-            "Não foi possível conectar com o servidor, tente novamente mais tarde"
-      };
-    } catch (e) {
-      print(e);
-      return {
-        "error": e.toString(),
+        "status": response.statusCode,
+        "headers": response.headers,
+        "body": await utf8.decodeStream(response.stream)
       };
     }
   }
